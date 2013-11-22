@@ -23,41 +23,38 @@ public class PushingBalancesCalculator implements BalancesOfMonthCalculator
 	@Override
 	public void fillData(List<BalancesOfMonth> balancesOfMonthList)
 	{
-		int overallBalance = 0;
+		int finalBalanceOfPreviousMonth = 0;
 
 		for (BalancesOfMonth balancesOfMonth : balancesOfMonthList)
 		{
-            Result result = new Result(overallBalance);
-
-			int ultimo = balancesOfMonth.getDate().getDayOfMonth();
-
-			int dayOfPreviousTransaction = 1;
-			List<Transaction> transactionsOfMonth = transactionsOfMonth(balancesOfMonth.getDate());
-            for (Transaction transaction : transactionsOfMonth)
-			{
-				int day = transaction.getDate().getDayOfMonth();
-				result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.overallBalance, day, ultimo);
-                result.overallBalance += transaction.getAmount();
-				dayOfPreviousTransaction = day;
-			}
-
-            result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.overallBalance, ultimo + 1, ultimo);
+            Result result = getResult(finalBalanceOfPreviousMonth, balancesOfMonth);
 
 			balancesOfMonth.setBalance(result.overallBalance);
 			balancesOfMonth.setAverageBalance((int) result.averageBalance);
 
-            overallBalance = result.overallBalance;
+            finalBalanceOfPreviousMonth = result.overallBalance;
 		}
 	}
 
-	private double calculateProportionalBalance(int dayOfPreviousTransaction, int balance, int day, int daysInMonth)
-	{
-		int daysBetweenTransactions = day - dayOfPreviousTransaction;
-		double proportion = (double) daysBetweenTransactions / daysInMonth;
-		return (balance * proportion);
-	}
+    private Result getResult(int overallBalance, BalancesOfMonth balancesOfMonth) {
+        Result result = new Result(overallBalance);
 
-	private List<Transaction> transactionsOfMonth(LocalDate date)
+        int ultimo = balancesOfMonth.getDate().getDayOfMonth();
+
+        int dayOfPreviousTransaction = 1;
+        List<Transaction> transactionsOfMonth = transactionsOfMonth(balancesOfMonth.getDate());
+        for (Transaction transaction : transactionsOfMonth)
+        {
+            int day = transaction.getDate().getDayOfMonth();
+            result.addProportionToAverageBalance(ultimo, dayOfPreviousTransaction, day);
+            result.addToOverallBalance(transaction.getAmount());
+            dayOfPreviousTransaction = day;
+        }
+        result.addProportionToAverageBalance(ultimo, dayOfPreviousTransaction, ultimo + 1);
+        return result;
+    }
+
+    private List<Transaction> transactionsOfMonth(LocalDate date)
 	{
 		List<Transaction> results = new ArrayList<Transaction>();
 		for (Transaction transaction : transactions)
