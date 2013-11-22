@@ -23,39 +23,39 @@ public class PushingBalancesCalculator implements BalancesOfMonthCalculator
 	@Override
 	public void fillData(List<BalancesOfMonth> balancesOfMonthList)
 	{
-		int balance = 0;
+		int overallBalance = 0;
 
 		for (BalancesOfMonth balancesOfMonth : balancesOfMonthList)
 		{
+            Result result = new Result();
+            result.balance = overallBalance;
+
 			int ultimo = balancesOfMonth.getDate().getDayOfMonth();
 
-			double averageBalance = 0;
-			int dayOfLatestBalance = 1;
+			int dayOfPreviousTransaction = 1;
 			List<Transaction> transactionsOfMonth = transactionsOfMonth(balancesOfMonth.getDate());
-			for (Transaction transaction : transactionsOfMonth)
+            for (Transaction transaction : transactionsOfMonth)
 			{
 				int day = transaction.getDate().getDayOfMonth();
-				averageBalance += calculateProportionalBalance(dayOfLatestBalance, balance, day, ultimo);
-				balance += transaction.getAmount();
-				dayOfLatestBalance = day;
+				result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.balance, day, ultimo);
+                result.balance += transaction.getAmount();
+				dayOfPreviousTransaction = day;
 			}
 
-			averageBalance += calculateProportionalBalance(dayOfLatestBalance, balance, ultimo + 1, ultimo);
+            result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.balance, ultimo + 1, ultimo);
 
-			balancesOfMonth.setBalance(balance);
-			balancesOfMonth.setAverageBalance((int) averageBalance);
+			balancesOfMonth.setBalance(result.balance);
+			balancesOfMonth.setAverageBalance((int) result.averageBalance);
+
+            overallBalance = result.balance;
 		}
 	}
 
-	private double calculateProportionalBalance(int dayOfLatestBalance, int balance, int day, int daysInMonth)
+	private double calculateProportionalBalance(int dayOfPreviousTransaction, int balance, int day, int daysInMonth)
 	{
-		int countingDays = day - dayOfLatestBalance;
-		if (countingDays == 0)
-		{
-			return 0;
-		}
-		double rate = (double) countingDays / daysInMonth;
-		return (balance * rate);
+		int daysBetweenTransactions = day - dayOfPreviousTransaction;
+		double proportion = (double) daysBetweenTransactions / daysInMonth;
+		return (balance * proportion);
 	}
 
 	private List<Transaction> transactionsOfMonth(LocalDate date)
