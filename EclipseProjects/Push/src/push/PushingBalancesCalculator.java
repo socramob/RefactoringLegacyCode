@@ -27,8 +27,7 @@ public class PushingBalancesCalculator implements BalancesOfMonthCalculator
 
 		for (BalancesOfMonth balancesOfMonth : balancesOfMonthList)
 		{
-            Result result = new Result();
-            result.balance = overallBalance;
+            Result result = new Result(overallBalance);
 
 			int ultimo = balancesOfMonth.getDate().getDayOfMonth();
 
@@ -37,17 +36,17 @@ public class PushingBalancesCalculator implements BalancesOfMonthCalculator
             for (Transaction transaction : transactionsOfMonth)
 			{
 				int day = transaction.getDate().getDayOfMonth();
-				result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.balance, day, ultimo);
-                result.balance += transaction.getAmount();
+				result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.overallBalance, day, ultimo);
+                result.overallBalance += transaction.getAmount();
 				dayOfPreviousTransaction = day;
 			}
 
-            result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.balance, ultimo + 1, ultimo);
+            result.averageBalance += calculateProportionalBalance(dayOfPreviousTransaction, result.overallBalance, ultimo + 1, ultimo);
 
-			balancesOfMonth.setBalance(result.balance);
+			balancesOfMonth.setBalance(result.overallBalance);
 			balancesOfMonth.setAverageBalance((int) result.averageBalance);
 
-            overallBalance = result.balance;
+            overallBalance = result.overallBalance;
 		}
 	}
 
