@@ -23,42 +23,19 @@ public class PushingBalancesCalculator implements BalancesOfMonthCalculator
 	@Override
 	public void fillData(List<BalancesOfMonth> balancesOfMonthList)
 	{
-		int balance = 0;
+        MonthlyFigure monthlyFigureOfPreviousMonth = MonthlyFigure.createDummy();
 
 		for (BalancesOfMonth balancesOfMonth : balancesOfMonthList)
 		{
 			int ultimo = balancesOfMonth.getDate().getDayOfMonth();
 
-			double averageBalance = 0;
-			int dayOfLatestBalance = 1;
-			List<Transaction> transactionsOfMonth = transactionsOfMonth(balancesOfMonth.getDate());
-			for (Transaction transaction : transactionsOfMonth)
-			{
-				int day = transaction.getDate().getDayOfMonth();
-				averageBalance += calculateProportionalBalance(dayOfLatestBalance, balance, day, ultimo);
-				balance += transaction.getAmount();
-				dayOfLatestBalance = day;
-			}
-
-			averageBalance += calculateProportionalBalance(dayOfLatestBalance, balance, ultimo + 1, ultimo);
-
-			balancesOfMonth.setBalance(balance);
-			balancesOfMonth.setAverageBalance((int) averageBalance);
+            monthlyFigureOfPreviousMonth = monthlyFigureOfPreviousMonth.getMonthlyFigureOfNextMonth(ultimo, transactionsOfMonth(balancesOfMonth.getDate()));
+			balancesOfMonth.setBalance(monthlyFigureOfPreviousMonth.getBalance());
+			balancesOfMonth.setAverageBalance((int) monthlyFigureOfPreviousMonth.getAverageBalance());
 		}
 	}
 
-	private double calculateProportionalBalance(int dayOfLatestBalance, int balance, int day, int daysInMonth)
-	{
-		int countingDays = day - dayOfLatestBalance;
-		if (countingDays == 0)
-		{
-			return 0;
-		}
-		double rate = (double) countingDays / daysInMonth;
-		return (balance * rate);
-	}
-
-	private List<Transaction> transactionsOfMonth(LocalDate date)
+    private List<Transaction> transactionsOfMonth(LocalDate date)
 	{
 		List<Transaction> results = new ArrayList<Transaction>();
 		for (Transaction transaction : transactions)
