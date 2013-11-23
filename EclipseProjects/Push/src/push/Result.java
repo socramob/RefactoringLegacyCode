@@ -26,4 +26,8 @@ public class Result {
     public void addToOverallBalance(int amount) {
         overallBalance += amount;
     }
+
+    void addFinalProportionToAverageBalance(int ultimo, int dayOfPreviousTransaction) {
+        addProportionToAverageBalance(ultimo, dayOfPreviousTransaction, ultimo + 1);
+    }
 }

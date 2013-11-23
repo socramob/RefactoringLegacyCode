@@ -50,7 +50,7 @@ public class PushingBalancesCalculator implements BalancesOfMonthCalculator
             result.addToOverallBalance(transaction.getAmount());
             dayOfPreviousTransaction = day;
         }
-        result.addProportionToAverageBalance(ultimo, dayOfPreviousTransaction, ultimo + 1);
+        result.addFinalProportionToAverageBalance(ultimo, dayOfPreviousTransaction);
         return result;
     }
 
